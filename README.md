@@ -1,4 +1,4 @@
 required packages:
-PyOpenGl
+PyOpenGl/n
 Pygame
 
