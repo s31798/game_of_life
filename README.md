@@ -1,0 +1,4 @@
+required packages:
+PyOpenGl
+Pygame
+
