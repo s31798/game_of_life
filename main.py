@@ -1,16 +1,20 @@
 import pygame
 from pygame.locals import *
 import GUI, Game_state, Cell
-
+clock = 0
 screen_width = 1000
 screen_height = 1000
 cells = []
 for i in range(-5,6):
     row = []
     for j in range(-5,6):
-        c = Cell.Cell(i,j, True)
+        c = Cell.Cell(i,j, False)
         row.append(c)
     cells.append(row)
+glider_coords = [(0, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+for x, y in glider_coords:
+    cells[x + 5][y + 5].is_alive = True
+
 gs = Game_state.GameState(cells)
 
 screen = pygame.display.set_mode((screen_width, screen_height), DOUBLEBUF | OPENGL)
@@ -28,7 +32,11 @@ while not done:
     if keys[pygame.K_KP_MINUS] and gui.scale < 1000:
         gui.scale += 2
     gui.process(gs)
-    gs.update()
+    clock += 1
+    if clock % 60 == 0:
+        clock = 0
+        gs.update()
+        print("q")
     pygame.display.flip()
     pygame.time.wait(10)
 pygame.quit()
