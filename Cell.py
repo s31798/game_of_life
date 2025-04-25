@@ -26,3 +26,6 @@ class Cell:
 
     def update(self):
         self.is_alive = self.will_be_alive
+
+    def __repr__(self):
+        return "⬛" if self.is_alive else "⬜"
