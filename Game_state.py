@@ -1,6 +1,9 @@
+import copy
+
 
 class GameState:
     def __init__(self, initial_state):
+        self.initial_state = copy.deepcopy(initial_state)
         self.state = initial_state
 
     def update(self):
@@ -11,6 +14,9 @@ class GameState:
         for row in self.state:
             for cell in row:
                 cell.update()
+
+    def reset(self):
+        self.state = copy.deepcopy(self.initial_state)
 
     def __repr__(self):
         representation = ""
