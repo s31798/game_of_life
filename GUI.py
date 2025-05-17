@@ -1,6 +1,6 @@
 import pygame
 import pygame_gui
-
+import json
 from input.KeyEvent import KeyEvent
 
 
@@ -20,7 +20,7 @@ class Gui:
         self.manager = pygame_gui.UIManager((screen_width, screen_height))
 
 
-        self.card_image =pygame.transform.scale(pygame.image.load('images/glider.png').convert_alpha(), (100, 100))
+        self.card_image =pygame.transform.scale(pygame.image.load('images/glider.png').convert_alpha(), (180, 180))
         self.card_rect = self.card_image.get_rect(topleft=(screen_width - 200, 100))
         self.dragging_card = False
         self.drag_x = None
@@ -28,33 +28,52 @@ class Gui:
 
         self.default_color = (230, 102, 77)
 
+        with open("structures/structures.json", "r") as file:
+            self.data = json.load(file)
+
+
+
         button_width = 100
         button_height = 50
         slider_width = 200
         slider_height = 30
         label_height = 25
         padding = 10
-        x_right = screen_width - slider_width - padding
+        self.x_right = screen_width - slider_width - padding
+        self.panel_y = 60
+        self.panel_x = self.x_right
         y_button = screen_height - button_height - padding
         y_slider = y_button - slider_height - padding
         y_label = y_slider - label_height + 5
 
+        self.panel = pygame_gui.elements.UIPanel(
+            relative_rect=pygame.Rect(( self.panel_x, self.panel_y), (200, 200)),
+            manager=self.manager,
+        )
+
+        self.selector = pygame_gui.elements.UIDropDownMenu(
+            options_list=self.data["structures"],
+            starting_option="glider",
+            relative_rect=pygame.Rect((self.x_right, 30), (200, 30)),
+            manager=self.manager
+            )
+
         self.label = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((x_right, y_label), (slider_width, label_height)),
+            relative_rect=pygame.Rect((self.x_right, y_label), (slider_width, label_height)),
             text="Speed",
             manager=self.manager
         )
         self.label.disable()
 
         self.slider = pygame_gui.elements.UIHorizontalSlider(
-            relative_rect=pygame.Rect((x_right, y_slider), (slider_width, slider_height)),
+            relative_rect=pygame.Rect((self.x_right, y_slider), (slider_width, slider_height)),
             start_value=50,
             value_range=(0, 100),
             manager=self.manager
         )
 
         self.button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((x_right, y_button), (button_width, button_height)),
+            relative_rect=pygame.Rect((self.x_right, y_button), (button_width, button_height)),
             text='Reset',
             manager=self.manager
         )
@@ -96,10 +115,9 @@ class Gui:
         if self.dragging_card:
             self.fill_cell(self.drag_x,self.drag_y,self.square_size,(106,190,48))
 
-        if not self.dragging_card:
-            self.screen.blit(self.card_image, self.card_rect)
 
         self.manager.draw_ui(self.screen)
+        self.screen.blit(self.card_image, (self.panel_x + 10, self.panel_y + 10))
 
     #for automatic stuff like buttons shining on hover
     def process_event(self, event):
@@ -168,11 +186,6 @@ class Gui:
 
         return col, row
 
-    @staticmethod
-    def cellgrid_to_window(col, row, square_size):
-        x = (col - 1) * square_size
-        y = row * square_size
-        return x, y
 
     @staticmethod
     def speed_to_cooldown(speed):

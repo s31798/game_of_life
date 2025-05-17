@@ -2,6 +2,7 @@ import pygame
 import GUI, Game_state, Cell
 from input import Event
 from input.publisher import publish
+import json
 
 pygame.init()
 clock = 0
@@ -15,7 +16,11 @@ for i in range(0,int(screen_width/10)):
         c = Cell.Cell(i,j, False)
         row.append(c)
     cells.append(row)
-glider_coords = [(0, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+
+with open("structures/structures.json", "r") as file:
+    data = json.load(file)
+    glider_coords = data["glider"]["coordinates"]
+
 for x, y in glider_coords:
     cells[x][y].is_alive = True
 gs = Game_state.GameState(cells)
