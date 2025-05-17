@@ -18,6 +18,16 @@ class Gui:
         self.screen = pygame.display.set_mode((screen_width, screen_height))
         self.offset = 4
         self.manager = pygame_gui.UIManager((screen_width, screen_height))
+
+
+        self.card_image =pygame.transform.scale(pygame.image.load('images/glider.png').convert_alpha(), (100, 100))
+        self.card_rect = self.card_image.get_rect(topleft=(screen_width - 200, 100))
+        self.dragging_card = False
+        self.drag_x = None
+        self.drag_y = None
+
+        self.default_color = (230, 102, 77)
+
         button_width = 100
         button_height = 50
         slider_width = 200
@@ -48,11 +58,11 @@ class Gui:
             text='Reset',
             manager=self.manager
         )
-    def fill_cell(self, x, y, square_size):
+    def fill_cell(self, x, y, square_size, color):
         rect_x = (x * square_size) - square_size
         rect_y = y * square_size
         rect = pygame.Rect(rect_x - self.offset, rect_y - self.offset, square_size, square_size)
-        pygame.draw.rect(self.screen, (230, 102, 77), rect)
+        pygame.draw.rect(self.screen, color, rect)
 
     def display_grid(self, square_size):
         if square_size < 30:
@@ -79,9 +89,16 @@ class Gui:
         for row in self.game_state.state:
             for cell in row:
                 if cell.is_alive:
-                    self.fill_cell(cell.x, cell.y,self.square_size)
+                    self.fill_cell(cell.x, cell.y,self.square_size,self.default_color)
         self.display_grid(self.square_size)
         self.manager.update(delta_time)
+
+        if self.dragging_card:
+            self.fill_cell(self.drag_x,self.drag_y,self.square_size,(106,190,48))
+
+        if not self.dragging_card:
+            self.screen.blit(self.card_image, self.card_rect)
+
         self.manager.draw_ui(self.screen)
 
     #for automatic stuff like buttons shining on hover
@@ -114,13 +131,25 @@ class Gui:
     def mouse_event(self, event):
         if event.is_mouse_button_event and event.button == "left":
             if event.type == "pressed":
-                self.draw(event)
-                self.drawing = True
+                if self.card_rect.collidepoint(event.pos):
+                    self.dragging_card = not self.dragging_card
+                    if self.dragging_card:
+                        x,y = Gui.window_to_cellgrid(event.mouse_x, event.mouse_y, self.screen_width,self.screen_height,self.square_size)
+                        self.drag_x = x
+                        self.drag_y = y
+                else:
+                    self.draw(event)
+                    self.drawing = True
             if event.type == "released":
                 self.drawing = False
         else:
             if self.drawing:
                 self.draw(event)
+            if self.dragging_card:
+                x,y = Gui.window_to_cellgrid(event.mouse_x, event.mouse_y, self.screen_width,self.screen_height,self.square_size)
+                self.drag_x = x
+                self.drag_y = y
+
 
 
     def draw(self,event):
@@ -138,6 +167,12 @@ class Gui:
         row = max(0, min(row, rows - 1))
 
         return col, row
+
+    @staticmethod
+    def cellgrid_to_window(col, row, square_size):
+        x = (col - 1) * square_size
+        y = row * square_size
+        return x, y
 
     @staticmethod
     def speed_to_cooldown(speed):

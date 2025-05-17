@@ -16,6 +16,7 @@ class MouseEvent:
             self.type = "released"
         self.mouse_x = event.pos[0]
         self.mouse_y = event.pos[1]
+        self.pos = event.pos
 
     def __str__(self):
         if self.is_mouse_button_event:
