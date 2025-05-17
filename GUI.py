@@ -18,9 +18,34 @@ class Gui:
         self.screen = pygame.display.set_mode((screen_width, screen_height))
         self.offset = 4
         self.manager = pygame_gui.UIManager((screen_width, screen_height))
+        button_width = 100
+        button_height = 50
+        slider_width = 200
+        slider_height = 30
+        label_height = 25
+        padding = 10
+        x_right = screen_width - slider_width - padding
+        y_button = screen_height - button_height - padding
+        y_slider = y_button - slider_height - padding
+        y_label = y_slider - label_height + 5
+
+        self.label = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((x_right, y_label), (slider_width, label_height)),
+            text="Speed",
+            manager=self.manager
+        )
+        self.label.disable()
+
+        self.slider = pygame_gui.elements.UIHorizontalSlider(
+            relative_rect=pygame.Rect((x_right, y_slider), (slider_width, slider_height)),
+            start_value=50,
+            value_range=(0, 100),
+            manager=self.manager
+        )
+
         self.button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((250, 170), (100, 50)),
-            text='Click Me',
+            relative_rect=pygame.Rect((x_right, y_button), (button_width, button_height)),
+            text='Reset',
             manager=self.manager
         )
     def fill_cell(self, x, y, square_size):
@@ -40,11 +65,11 @@ class Gui:
             pygame.draw.line(self.screen, color,(i * square_size - self.offset,0) ,(i * square_size - self.offset, self.screen_width), 1)
             pygame.draw.line(self.screen, color, (0, i * square_size  - self.offset),(self.screen_width, i * square_size  - self.offset), 1)
 
-    def process(self,delta_time,start_time):
+    def process(self,delta_time,current):
 
-        if start_time - self.last_update_time >= self.cooldown:
+        if current - self.last_update_time >= self.cooldown:
             self.game_state.update()
-            self.last_update_time = start_time
+            self.last_update_time = current
 
         if self.grid_increasing and self.square_size < 200:
             self.square_size += 1
@@ -64,8 +89,13 @@ class Gui:
         self.manager.process_events(event)
 
     #custom logic
-    def ui_button_pressed(self,event):
-        self.game_state.reset()
+    def ui_interaction(self,event):
+        if event.type == "button_click":
+            self.game_state.reset()
+        if event.type == "slider_moved":
+            self.drawing = False
+            print(event.value)
+            self.cooldown = Gui.speed_to_cooldown(event.value)
 
     def key_pressed(self, event):
         if isinstance(event, KeyEvent):
@@ -108,3 +138,11 @@ class Gui:
         row = max(0, min(row, rows - 1))
 
         return col, row
+
+    @staticmethod
+    def speed_to_cooldown(speed):
+        max_cooldown = 10000
+        speed = max(0, min(speed, 100)) / 100
+        p = 0.066
+        cooldown = max_cooldown * (1 - speed ** p)
+        return cooldown
