@@ -22,6 +22,7 @@ class Gui:
 
         self.card_image =pygame.transform.scale(pygame.image.load('images/glider.png').convert_alpha(), (180, 180))
         self.card_rect = self.card_image.get_rect(topleft=(screen_width - 200, 100))
+        self.dragging_card_started = False
         self.dragging_card = False
         self.drag_x = None
         self.drag_y = None
@@ -54,7 +55,7 @@ class Gui:
         self.selector = pygame_gui.elements.UIDropDownMenu(
             options_list=self.data["structures"],
             starting_option="glider",
-            relative_rect=pygame.Rect((self.x_right, 30), (200, 30)),
+            relative_rect=pygame.Rect((self.x_right, self.panel_y + 200), (200, 30)),
             manager=self.manager
             )
 
@@ -113,7 +114,8 @@ class Gui:
         self.manager.update(delta_time)
 
         if self.dragging_card:
-            self.fill_cell(self.drag_x,self.drag_y,self.square_size,(106,190,48))
+            for coord in self.data["glider"]["coordinates"]:
+                self.fill_cell(coord[0] + self.drag_x,coord[1] +self.drag_y,self.square_size,(106,190,48))
 
 
         self.manager.draw_ui(self.screen)
@@ -150,24 +152,29 @@ class Gui:
         if event.is_mouse_button_event and event.button == "left":
             if event.type == "pressed":
                 if self.card_rect.collidepoint(event.pos):
-                    self.dragging_card = not self.dragging_card
-                    if self.dragging_card:
-                        x,y = Gui.window_to_cellgrid(event.mouse_x, event.mouse_y, self.screen_width,self.screen_height,self.square_size)
-                        self.drag_x = x
-                        self.drag_y = y
-                else:
+                    self.dragging_card_started = True
+                    x,y = Gui.window_to_cellgrid(event.mouse_x, event.mouse_y, self.screen_width,self.screen_height,self.square_size)
+                    self.drag_x = x
+                    self.drag_y = y
+                elif not self.dragging_card:
                     self.draw(event)
                     self.drawing = True
             if event.type == "released":
                 self.drawing = False
+                if self.dragging_card:
+                    for coord in self.data["glider"]["coordinates"]:
+                        self.game_state.make_cell_alive(coord[1] + self.drag_y,coord[0] + self.drag_x)
+                    self.dragging_card = False
+                elif self.dragging_card_started:
+                    self.dragging_card = True
+                    self.dragging_card_started = False
         else:
-            if self.drawing:
-                self.draw(event)
             if self.dragging_card:
                 x,y = Gui.window_to_cellgrid(event.mouse_x, event.mouse_y, self.screen_width,self.screen_height,self.square_size)
                 self.drag_x = x
                 self.drag_y = y
-
+            elif self.drawing:
+                self.draw(event)
 
 
     def draw(self,event):
