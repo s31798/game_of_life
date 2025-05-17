@@ -6,6 +6,15 @@ class GameState:
         self.initial_state = copy.deepcopy(initial_state)
         self.state = initial_state
 
+    def make_cell_alive(self, x, y):
+
+        if 0 <= y < len(self.state) and 0 <= x < len(self.state[0]):
+            cell = self.state[y][x]
+            cell.is_alive = True
+        else:
+            raise IndexError(f"Cell coordinates ({x}, {y}) out of bounds.")
+
+
     def update(self):
         for row in self.state:
             for cell in row:

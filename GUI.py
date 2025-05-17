@@ -6,8 +6,11 @@ from input.KeyEvent import KeyEvent
 
 class Gui:
     def __init__(self,screen_width, screen_height, game_state):
+        self.last_update_time = 0
+        self.cooldown = 1000
         self.grid_increasing = False
         self.grid_decreasing = False
+        self.drawing = False
         self.square_size = 10
         self.game_state = game_state
         self.screen_width = screen_width
@@ -37,15 +40,16 @@ class Gui:
             pygame.draw.line(self.screen, color,(i * square_size - self.offset,0) ,(i * square_size - self.offset, self.screen_width), 1)
             pygame.draw.line(self.screen, color, (0, i * square_size  - self.offset),(self.screen_width, i * square_size  - self.offset), 1)
 
-    def process(self,delta_time):
-        self.game_state.update()
+    def process(self,delta_time,start_time):
+
+        if start_time - self.last_update_time >= self.cooldown:
+            self.game_state.update()
+            self.last_update_time = start_time
 
         if self.grid_increasing and self.square_size < 200:
             self.square_size += 1
         if self.grid_decreasing and self.square_size > 5:
             self.square_size -= 1
-
-
         self.screen.fill((0, 0, 0))
         for row in self.game_state.state:
             for cell in row:
@@ -77,4 +81,30 @@ class Gui:
                     self.grid_decreasing = False
 
 
+    def mouse_event(self, event):
+        if event.is_mouse_button_event and event.button == "left":
+            if event.type == "pressed":
+                self.draw(event)
+                self.drawing = True
+            if event.type == "released":
+                self.drawing = False
+        else:
+            if self.drawing:
+                self.draw(event)
 
+
+    def draw(self,event):
+        col, row = Gui.window_to_cellgrid(event.mouse_x, event.mouse_y, self.screen_width, self.screen_height,
+                                          self.square_size)
+        self.game_state.make_cell_alive(row, col)
+
+    @staticmethod
+    def window_to_cellgrid(x, y, window_width, window_height, square_size):
+        cols = window_width // square_size
+        rows = window_height // square_size
+        col = x // square_size
+        row = y // square_size
+        col = max(0, min(col, cols - 1)) + 1
+        row = max(0, min(row, rows - 1))
+
+        return col, row

@@ -5,6 +5,7 @@ import pygame_gui
 import GUI, Game_state, Cell
 from input import Event
 from input.KeyEvent import KeyEvent
+from input.MouseEvent import MouseEvent
 
 pygame.init()
 clock = 0
@@ -28,12 +29,14 @@ pygame.display.set_caption('Game of life')
 messenger = Event.Events()
 messenger.subscribe("ui", gui.ui_button_pressed)
 messenger.subscribe("keyboard", gui.key_pressed)
+messenger.subscribe("mouse",gui.mouse_event)
 
 
 clock = pygame.time.Clock()
 done = False
 while not done:
     time_delta = clock.tick(60) / 1000.0
+    start_time = pygame.time.get_ticks()
     gui.screen.fill((30, 30, 30))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -45,12 +48,12 @@ while not done:
         gui.process_event(event)
 
         if event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
-            messenger.publish("mouse", event)
+            messenger.publish("mouse", MouseEvent(event))
 
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == gui.button:
                 messenger.publish("ui", {"type": "button_click", "label": gui.button.text})
 
-    gui.process(time_delta)
+    gui.process(time_delta, start_time)
     pygame.display.flip()
 pygame.quit()

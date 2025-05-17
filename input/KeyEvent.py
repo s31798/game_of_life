@@ -1,8 +1,7 @@
 import pygame
 
-
 class KeyEvent:
-    def __init__(self,event):
+    def __init__(self, event):
         if event.type == pygame.KEYDOWN:
             self.type = "pressed"
         elif event.type == pygame.KEYUP:
@@ -11,3 +10,4 @@ class KeyEvent:
 
     def __str__(self):
         return f"Key '{self.key}' {self.type}"
+
