@@ -32,7 +32,7 @@ class Gui:
         with open("structures/structures.json", "r") as file:
             self.data = json.load(file)
 
-
+        self.current_card = None
 
         button_width = 100
         button_height = 50
@@ -97,6 +97,8 @@ class Gui:
 
     def process(self,delta_time,current):
 
+        self.current_card = self.selector.selected_option[0]
+
         if current - self.last_update_time >= self.cooldown:
             self.game_state.update()
             self.last_update_time = current
@@ -114,7 +116,7 @@ class Gui:
         self.manager.update(delta_time)
 
         if self.dragging_card:
-            for coord in self.data["glider"]["coordinates"]:
+            for coord in self.data[self.current_card]["coordinates"]:
                 self.fill_cell(coord[0] + self.drag_x,coord[1] +self.drag_y,self.square_size,(106,190,48))
 
 
@@ -162,7 +164,7 @@ class Gui:
             if event.type == "released":
                 self.drawing = False
                 if self.dragging_card:
-                    for coord in self.data["glider"]["coordinates"]:
+                    for coord in self.data[self.current_card]["coordinates"]:
                         self.game_state.make_cell_alive(coord[1] + self.drag_y,coord[0] + self.drag_x)
                     self.dragging_card = False
                 elif self.dragging_card_started:
