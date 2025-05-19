@@ -1,6 +1,9 @@
 import pygame
 import pygame_gui
 import json
+
+from pygame.examples.cursors import image
+
 from input.KeyEvent import KeyEvent
 
 
@@ -18,9 +21,10 @@ class Gui:
         self.screen = pygame.display.set_mode((screen_width, screen_height))
         self.offset = 4
         self.manager = pygame_gui.UIManager((screen_width, screen_height))
+        self.paused = False
 
-
-        self.card_image =pygame.transform.scale(pygame.image.load('images/glider.png').convert_alpha(), (180, 180))
+        self.card_image = pygame.transform.scale(pygame.image.load('images/glider.png').convert_alpha(), (180, 180))
+        self.image_changed = False
         self.card_rect = self.card_image.get_rect(topleft=(screen_width - 200, 100))
         self.dragging_card_started = False
         self.dragging_card = False
@@ -78,6 +82,11 @@ class Gui:
             text='Reset',
             manager=self.manager
         )
+        self.button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((self.x_right + button_width + padding/2, y_button), (button_width, button_height)),
+            text='Pause',
+            manager=self.manager
+        )
     def fill_cell(self, x, y, square_size, color):
         rect_x = (x * square_size) - square_size
         rect_y = y * square_size
@@ -96,10 +105,12 @@ class Gui:
             pygame.draw.line(self.screen, color, (0, i * square_size  - self.offset),(self.screen_width, i * square_size  - self.offset), 1)
 
     def process(self,delta_time,current):
-
+        self.image_changed = self.current_card != self.selector.selected_option[0]
         self.current_card = self.selector.selected_option[0]
+        if self.image_changed:
+            self.card_image = self.card_image = pygame.transform.scale(pygame.image.load(self.data[self.current_card]["image"]).convert_alpha(), (180, 180))
 
-        if current - self.last_update_time >= self.cooldown:
+        if current - self.last_update_time >= self.cooldown and not self.paused:
             self.game_state.update()
             self.last_update_time = current
 
@@ -130,7 +141,11 @@ class Gui:
     #custom logic
     def ui_interaction(self,event):
         if event.type == "button_click":
-            self.game_state.reset()
+            if event.label == "Reset":
+                self.game_state.reset()
+            elif event.label == "Pause":
+                self.paused = not self.paused
+
         if event.type == "slider_moved":
             self.drawing = False
             print(event.value)
