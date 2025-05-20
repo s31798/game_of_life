@@ -1,14 +1,15 @@
 import pygame
 import pygame_gui
 import json
-
-from pygame.examples.cursors import image
+import Constants as ct
 
 from input.KeyEvent import KeyEvent
 
 
 class Gui:
-    def __init__(self,screen_width, screen_height, game_state):
+    def __init__(self, game_state):
+        self.screen_width = ct.SCREEN_WIDTH
+        self.screen_height = ct.SCREEN_HEIGHT
         self.last_update_time = 0
         self.cooldown = 1000
         self.grid_increasing = False
@@ -16,16 +17,14 @@ class Gui:
         self.drawing = False
         self.square_size = 10
         self.game_state = game_state
-        self.screen_width = screen_width
-        self.screen_height = screen_height
-        self.screen = pygame.display.set_mode((screen_width, screen_height))
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.offset = 4
-        self.manager = pygame_gui.UIManager((screen_width, screen_height))
+        self.manager = pygame_gui.UIManager((self.screen_width, self.screen_height))
         self.paused = False
 
         self.card_image = pygame.transform.scale(pygame.image.load('images/glider.png').convert_alpha(), (180, 180))
         self.image_changed = False
-        self.card_rect = self.card_image.get_rect(topleft=(screen_width - 200, 100))
+        self.card_rect = self.card_image.get_rect(topleft=(self.screen_width - 200, 100))
         self.dragging_card_started = False
         self.dragging_card = False
         self.drag_x = None
@@ -44,15 +43,15 @@ class Gui:
         slider_height = 30
         label_height = 25
         padding = 10
-        self.x_right = screen_width - slider_width - padding
+        self.x_right = self.screen_width - slider_width - padding
         self.panel_y = 60
         self.panel_x = self.x_right
-        y_button = screen_height - button_height - padding
+        y_button = self.screen_height - button_height - padding
         y_slider = y_button - slider_height - padding
         y_label = y_slider - label_height + 5
 
         self.panel = pygame_gui.elements.UIPanel(
-            relative_rect=pygame.Rect(( self.panel_x, self.panel_y), (200, 200)),
+            relative_rect=pygame.Rect((self.panel_x, self.panel_y), (200, 200)),
             manager=self.manager,
         )
 
@@ -61,7 +60,7 @@ class Gui:
             starting_option="glider",
             relative_rect=pygame.Rect((self.x_right, self.panel_y + 200), (200, 30)),
             manager=self.manager
-            )
+        )
 
         self.label = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect((self.x_right, y_label), (slider_width, label_height)),
@@ -77,16 +76,18 @@ class Gui:
             manager=self.manager
         )
 
-        self.button = pygame_gui.elements.UIButton(
+        self.reset_button = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect((self.x_right, y_button), (button_width, button_height)),
             text='Reset',
             manager=self.manager
         )
-        self.button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((self.x_right + button_width + padding/2, y_button), (button_width, button_height)),
+        self.pause_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((self.x_right + button_width + padding / 2, y_button),
+                                      (button_width, button_height)),
             text='Pause',
             manager=self.manager
         )
+
     def fill_cell(self, x, y, square_size, color):
         rect_x = (x * square_size) - square_size
         rect_y = y * square_size
@@ -96,19 +97,22 @@ class Gui:
     def display_grid(self, square_size):
         if square_size < 30:
             darkening = (127 / square_size) * 2
-            color = (128 - darkening,128 - darkening, 128 - darkening)
+            color = (128 - darkening, 128 - darkening, 128 - darkening)
         else:
             color = (128, 128, 128)
         amount = self.screen_height / square_size
-        for i in range(int(amount)+1):
-            pygame.draw.line(self.screen, color,(i * square_size - self.offset,0) ,(i * square_size - self.offset, self.screen_width), 1)
-            pygame.draw.line(self.screen, color, (0, i * square_size  - self.offset),(self.screen_width, i * square_size  - self.offset), 1)
+        for i in range(int(amount) + 1):
+            pygame.draw.line(self.screen, color, (i * square_size - self.offset, 0),
+                             (i * square_size - self.offset, self.screen_width), 1)
+            pygame.draw.line(self.screen, color, (0, i * square_size - self.offset),
+                             (self.screen_width, i * square_size - self.offset), 1)
 
-    def process(self,delta_time,current):
+    def process(self, delta_time, current):
         self.image_changed = self.current_card != self.selector.selected_option[0]
         self.current_card = self.selector.selected_option[0]
         if self.image_changed:
-            self.card_image = self.card_image = pygame.transform.scale(pygame.image.load(self.data[self.current_card]["image"]).convert_alpha(), (180, 180))
+            self.card_image = self.card_image = pygame.transform.scale(
+                pygame.image.load(self.data[self.current_card]["image"]).convert_alpha(), (180, 180))
 
         if current - self.last_update_time >= self.cooldown and not self.paused:
             self.game_state.update()
@@ -122,24 +126,23 @@ class Gui:
         for row in self.game_state.state:
             for cell in row:
                 if cell.is_alive:
-                    self.fill_cell(cell.x, cell.y,self.square_size,self.default_color)
+                    self.fill_cell(cell.x, cell.y, self.square_size, self.default_color)
         self.display_grid(self.square_size)
         self.manager.update(delta_time)
 
         if self.dragging_card:
             for coord in self.data[self.current_card]["coordinates"]:
-                self.fill_cell(coord[0] + self.drag_x,coord[1] +self.drag_y,self.square_size,(106,190,48))
-
+                self.fill_cell(coord[0] + self.drag_x, coord[1] + self.drag_y, self.square_size, (106, 190, 48))
 
         self.manager.draw_ui(self.screen)
         self.screen.blit(self.card_image, (self.panel_x + 10, self.panel_y + 10))
 
-    #for automatic stuff like buttons shining on hover
+    # for automatic stuff like buttons shining on hover
     def process_event(self, event):
         self.manager.process_events(event)
 
-    #custom logic
-    def ui_interaction(self,event):
+    # custom logic
+    def ui_interaction(self, event):
         if event.type == "button_click":
             if event.label == "Reset":
                 self.game_state.reset()
@@ -148,7 +151,6 @@ class Gui:
 
         if event.type == "slider_moved":
             self.drawing = False
-            print(event.value)
             self.cooldown = Gui.speed_to_cooldown(event.value)
 
     def key_pressed(self, event):
@@ -164,13 +166,14 @@ class Gui:
                 if event.type == "released":
                     self.grid_decreasing = False
 
-
     def mouse_event(self, event):
+
         if event.is_mouse_button_event and event.button == "left":
             if event.type == "pressed":
                 if self.card_rect.collidepoint(event.pos):
                     self.dragging_card_started = True
-                    x,y = Gui.window_to_cellgrid(event.mouse_x, event.mouse_y, self.screen_width,self.screen_height,self.square_size)
+                    x, y = Gui.window_to_cellgrid(event.mouse_x, event.mouse_y, self.screen_width, self.screen_height,
+                                                  self.square_size)
                     self.drag_x = x
                     self.drag_y = y
                 elif not self.dragging_card:
@@ -180,21 +183,21 @@ class Gui:
                 self.drawing = False
                 if self.dragging_card:
                     for coord in self.data[self.current_card]["coordinates"]:
-                        self.game_state.make_cell_alive(coord[1] + self.drag_y,coord[0] + self.drag_x)
+                        self.game_state.make_cell_alive(coord[1] + self.drag_y, coord[0] + self.drag_x)
                     self.dragging_card = False
                 elif self.dragging_card_started:
                     self.dragging_card = True
                     self.dragging_card_started = False
         else:
             if self.dragging_card:
-                x,y = Gui.window_to_cellgrid(event.mouse_x, event.mouse_y, self.screen_width,self.screen_height,self.square_size)
+                x, y = Gui.window_to_cellgrid(event.mouse_x, event.mouse_y, self.screen_width, self.screen_height,
+                                              self.square_size)
                 self.drag_x = x
                 self.drag_y = y
             elif self.drawing:
                 self.draw(event)
 
-
-    def draw(self,event):
+    def draw(self, event):
         col, row = Gui.window_to_cellgrid(event.mouse_x, event.mouse_y, self.screen_width, self.screen_height,
                                           self.square_size)
         self.game_state.make_cell_alive(row, col)
@@ -209,7 +212,6 @@ class Gui:
         row = max(0, min(row, rows - 1))
 
         return col, row
-
 
     @staticmethod
     def speed_to_cooldown(speed):

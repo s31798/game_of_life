@@ -11,6 +11,8 @@ def publish(gui,messenger):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
+            exit(0)
+
 
         if event.type in (pygame.KEYDOWN, pygame.KEYUP):
             messenger.publish("keyboard", KeyEvent(event))
@@ -21,7 +23,9 @@ def publish(gui,messenger):
             messenger.publish("mouse", MouseEvent(event))
 
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
-            if event.ui_element == gui.button:
-                messenger.publish("ui", UIEvent("button_click", label=gui.button.text))
+            if event.ui_element == gui.pause_button:
+                messenger.publish("ui", UIEvent("button_click", label="Pause"))
+            elif event.ui_element == gui.reset_button:
+                messenger.publish("ui", UIEvent("button_click", label="Reset"))
         if event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED and event.ui_element == gui.slider:
             messenger.publish("ui", UIEvent("slider_moved", value=event.value))
