@@ -1,12 +1,12 @@
 {
-  "structures": ["glider","lwss","r_pentomino","pulsar","gosper_glider_gun","spaceship","diehard","acorn"],
+  "structures": ["glider","lwss","r_pentomino","pulsar","gosper_glider_gun","diehard","acorn"],
   "glider": {
     "coordinates": [[0, 1], [1, 2], [2, 0], [2, 1], [2, 2]],
     "image": "images/glider.png"
   },
   "lwss": {
         "coordinates": [[1, 0], [4, 0], [0, 1], [0, 2], [4, 2], [0, 3], [1, 3], [2, 3], [3, 3]],
-        "image": "images/glider.png"
+        "image": "images/lwss.png"
     },
     "r_pentomino": {
         "coordinates": [[1, 0], [2, 0], [0, 1], [1, 1], [1, 2]],
@@ -36,13 +36,6 @@
             [34,2],[34,3],[35,2],[35,3]
         ],
         "image": "images/gosper_glider_gun.png"
-    },
-
-    "spaceship": {
-        "coordinates": [
-            [1,0],[2,0],[3,0],[4,0],[0,1],[4,1],[4,2],[0,3],[3,3]
-        ],
-        "image": "images/mwss.png"
     },
 
     "diehard": {
