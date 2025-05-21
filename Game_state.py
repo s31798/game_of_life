@@ -6,8 +6,8 @@ from Cell import Cell
 
 class GameState:
     def __init__(self):
-        self.board_height = int(ct.SCREEN_HEIGHT / 5 + 1)
-        self.board_width = int(ct.SCREEN_WIDTH / 5 + 1)
+        self.board_height = int(ct.SCREEN_WIDTH / 5 )
+        self.board_width = int(ct.SCREEN_HEIGHT / 5 + 1)
         self.cells = [[Cell(x, y, False) for y in range(self.board_height)] for x in range(self.board_width)]
         self.initial_state = copy.deepcopy(self.cells)
         self.state = self.cells

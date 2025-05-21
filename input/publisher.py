@@ -29,3 +29,7 @@ def publish(gui,messenger):
                 messenger.publish("ui", UIEvent("button_click", label="Reset"))
         if event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED and event.ui_element == gui.slider:
             messenger.publish("ui", UIEvent("slider_moved", value=event.value))
+
+        if event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
+            if event.ui_element == gui.input_field:
+                messenger.publish("ui", UIEvent("text_entered",input_text=gui.input_field.get_text()))
