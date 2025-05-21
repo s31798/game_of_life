@@ -18,11 +18,14 @@ class Gui:
         self.square_size = 10
         self.game_state = game_state
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_icon(
+        pygame.transform.scale(pygame.image.load('images/glider.png').convert_alpha(), (10, 10)))
         self.offset = 4
         self.manager = pygame_gui.UIManager((self.screen_width, self.screen_height))
         self.paused = False
 
         self.card_image = pygame.transform.scale(pygame.image.load('images/glider.png').convert_alpha(), (180, 180))
+
         self.image_changed = False
         self.card_rect = self.card_image.get_rect(topleft=(self.screen_width - 200, 100))
         self.dragging_card_started = False
